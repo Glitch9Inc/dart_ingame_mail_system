@@ -25,3 +25,6 @@ dependencies:
   dart_firetask:
     path: ../dart_firetask
  
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0

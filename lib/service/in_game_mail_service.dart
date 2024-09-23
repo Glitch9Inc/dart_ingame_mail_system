@@ -11,7 +11,7 @@ class InGameMailService extends GetxService {
   final SystemMailCrudController _systemMailController;
 
   // 여러 프로젝트에서 공용으로 시스템 메일의 조건을 확인할 수 있도록 조건 확인 델리게이트를 등록한다
-  final RxInt? _loginCount; // 로그인횟수 RxInt를 직접 외부 프로젝트에서 레퍼런스로 받아서 사용할 수 있도록 한다
+  final int _loginCount;
   final RxInt? _playerLevel; // 플레이어 레벨
   final RxInt? _vipLevel; // VIP 레벨
   final RxString? _lastCompletedAchievementId;
@@ -26,7 +26,7 @@ class InGameMailService extends GetxService {
     String? databaseCollectionName,
     String? systemMailDocumentName,
     String? systemMailSenderName,
-    RxInt? loginCount,
+    int loginCount = 0,
     RxInt? playerLevel,
     RxInt? vipLevel,
     RxString? lastCompletedAchievementId,
@@ -47,10 +47,8 @@ class InGameMailService extends GetxService {
     await _checkSystemMailCondition(SystemMailCondition.noCondition);
     await _checkSystemMailCondition(SystemMailCondition.loginOnSpecialDay);
 
-    if (_loginCount != null) {
-      ever(_loginCount, (_) async {
-        await _checkSystemMailCondition(SystemMailCondition.loginCount);
-      });
+    if (_loginCount != 0) {
+      await _checkSystemMailCondition(SystemMailCondition.loginCount);
     }
 
     if (_playerLevel != null) {
@@ -136,7 +134,7 @@ class InGameMailService extends GetxService {
       switch (condition) {
         case SystemMailCondition.loginCount:
           final requiredLoginCount = SystemMailConditionArgConverter.convertToInt(conditionArg!, mail.id, _logger);
-          if (requiredLoginCount != null && _loginCount!.value >= requiredLoginCount) {
+          if (requiredLoginCount != null && _loginCount >= requiredLoginCount) {
             await _receiveMail(mail);
           }
           break;
