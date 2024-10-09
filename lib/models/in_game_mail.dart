@@ -7,8 +7,10 @@ class InGameMail extends BaseDto<InGameMail> {
   final String subject;
   final String message;
   final DateTime date;
-  final MailStatus status;
+  final Rx<MailStatus> status;
   final List<MailAttachment>? attachments;
+
+  MailStatus? _tempStatus;
 
   InGameMail({
     required super.id,
@@ -20,6 +22,10 @@ class InGameMail extends BaseDto<InGameMail> {
     required this.status,
     this.attachments,
   });
+
+  bool get isUnread => status.value == MailStatus.unread;
+  bool get isRead => status.value == MailStatus.read;
+  bool get isClaimed => status.value == MailStatus.claimed;
 
   factory InGameMail.create({
     required InGameMailCrudController controller,
@@ -37,7 +43,7 @@ class InGameMail extends BaseDto<InGameMail> {
       subject: subject,
       message: message,
       date: now,
-      status: MailStatus.unread,
+      status: MailStatus.unread.obs,
       attachments: attachments,
     );
   }
@@ -49,7 +55,7 @@ class InGameMail extends BaseDto<InGameMail> {
       subject: json.getString('subject'),
       message: json.getString('message'),
       date: json.getDateTime('date'),
-      status: json.getEnum<MailStatus>('status', MailStatus.values),
+      status: json.getEnum<MailStatus>('status', MailStatus.values, defaultValue: MailStatus.unread).obs,
       attachments: json.getList<MailAttachment>('attachments',
           mapper: (json) => MailAttachment.fromJson(json as Map<String, dynamic>)),
       crud: controller,
@@ -58,6 +64,8 @@ class InGameMail extends BaseDto<InGameMail> {
 
   @override
   Map<String, dynamic> toJson() {
+    var status = _tempStatus ?? this.status.value;
+
     return {
       'id': id,
       'sender': sender,
@@ -67,5 +75,21 @@ class InGameMail extends BaseDto<InGameMail> {
       'status': status.name,
       'attachments': attachments?.map((e) => e.toJson()).toList(),
     };
+  }
+
+  Future<void> setStatus(MailStatus status) async {
+    _tempStatus = status;
+    await save();
+    this.status.value = status;
+  }
+
+  void setStatusBatch(MailStatus status) {
+    _tempStatus = status;
+    setBatch();
+  }
+
+  void onStatusBatchCommitSuccess() {
+    status.value = _tempStatus!;
+    _tempStatus = null;
   }
 }

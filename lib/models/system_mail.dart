@@ -1,3 +1,4 @@
+import 'package:dart_ingame_mail_system/utils/in_game_mail_id.dart';
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/service/in_game_mail_config.dart';
@@ -37,7 +38,7 @@ class SystemMail extends InGameMail {
       subject: json.getString('subject'),
       message: json.getString('message'),
       date: json.getDateTime('date'),
-      status: json.getEnum<MailStatus>('status', MailStatus.values),
+      status: json.getEnum<MailStatus>('status', MailStatus.values).obs,
       condition: json.getEnum<SystemMailCondition>('condition', SystemMailCondition.values),
       conditionArg: json.getString('conditionArg'),
       attachments: json.getList<MailAttachment>('attachments',

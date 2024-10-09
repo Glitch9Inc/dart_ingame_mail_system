@@ -2,11 +2,11 @@ class TimePeriod {
   final DateTime start;
   final DateTime end;
 
-  const TimePeriod(this.start, this.end);
+  const TimePeriod({required this.start, required this.end});
 
   factory TimePeriod.fromString(String timePeriod) {
     final split = timePeriod.split('~');
-    return TimePeriod(DateTime.parse(split[0]), DateTime.parse(split[1]));
+    return TimePeriod(start: DateTime.parse(split[0]), end: DateTime.parse(split[1]));
   }
 
   @override

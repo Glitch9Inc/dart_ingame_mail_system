@@ -1,3 +1,4 @@
+import 'package:dart_ingame_mail_system/service/in_game_test_mails.dart';
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/controller/system_mail_crud_controller.dart';
@@ -17,6 +18,7 @@ class InGameMailService extends GetxService {
   final RxString? _lastCompletedAchievementId;
   final RxString? _lastParticipatedEventId;
   final RxInt? _friendReferralCount;
+  final bool _isTestMode;
 
   InGameMailService({
     required String userEmail,
@@ -32,6 +34,7 @@ class InGameMailService extends GetxService {
     RxString? lastCompletedAchievementId,
     RxString? lastParticipatedEventId,
     RxInt? friendReferralCount,
+    bool isTestMode = false,
   })  : _userMailController = InGameMailCrudController(userEmail, inboxCollectionName, inboxDocumentName),
         _systemMailController = SystemMailCrudController(),
         _loginCount = loginCount,
@@ -39,7 +42,8 @@ class InGameMailService extends GetxService {
         _vipLevel = vipLevel,
         _lastCompletedAchievementId = lastCompletedAchievementId,
         _lastParticipatedEventId = lastParticipatedEventId,
-        _friendReferralCount = friendReferralCount;
+        _friendReferralCount = friendReferralCount,
+        _isTestMode = isTestMode;
 
   Future<void> init() async {
     await _loadSystemMails(); // load system mails first
@@ -86,9 +90,14 @@ class InGameMailService extends GetxService {
   final RxList<SystemMail> systemMails = <SystemMail>[].obs; // 외부에서 이 RxList를 직접 사용하여 UI를 업데이트할 수 있도록 한다
 
   Future<void> _loadUserMails() async {
+    if (_isTestMode) {
+      userMails.assignAll(InGameTestMails.create(_userMailController));
+      return;
+    }
+
     final result = await _userMailController.list();
     if (result.isError) {
-      _logger.severe('Failed to load user mails: ${result.message ?? 'Unknown error'}');
+      _logger.warning('Failed to load user mails: ${result.message ?? 'Unknown error'}');
       return;
     }
 
@@ -98,7 +107,7 @@ class InGameMailService extends GetxService {
   Future<void> _loadSystemMails() async {
     final result = await _systemMailController.list();
     if (result.isError) {
-      _logger.severe('Failed to load system mails: ${result.message ?? 'Unknown error'}');
+      _logger.warning('Failed to load system mails: ${result.message ?? 'Unknown error'}');
       return;
     }
 
