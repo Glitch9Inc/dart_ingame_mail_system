@@ -1,4 +1,3 @@
-import 'package:dart_ingame_mail_system/utils/in_game_mail_id.dart';
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/service/in_game_mail_config.dart';
