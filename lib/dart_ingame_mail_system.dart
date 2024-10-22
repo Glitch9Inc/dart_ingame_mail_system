@@ -8,5 +8,5 @@ export 'models/mail_status.dart';
 export 'models/time_period.dart';
 
 // service
-export 'controller/in_game_mail_crud_controller.dart';
+export 'clients/in_game_mail_crud_client.dart';
 export 'service/in_game_mail_service.dart';

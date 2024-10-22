@@ -2,13 +2,11 @@ import 'package:dart_firetask/dart_firetask.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/service/in_game_mail_config.dart';
 
-class SystemMailCrudController extends DocumentCrudController<SystemMail, SystemMailCrudController> {
-  SystemMailCrudController()
+class SystemMailCrudClient extends DocumentClient<SystemMail, SystemMailCrudClient> {
+  SystemMailCrudClient()
       : super(FirebaseFirestore.instance.collection(InGameMailConfig.databaseCollectionName),
             documentName: InGameMailConfig.systemMailDocumentName);
 
   @override
-  SystemMail fromJson(SystemMailCrudController controller, Map<String, Object?> json) {
-    return SystemMail.fromJson(controller, json);
-  }
+  SystemMail fromJson(Map<String, Object?> json) => SystemMail.fromJson(json);
 }

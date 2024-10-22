@@ -1,15 +1,15 @@
 import 'package:dart_ingame_mail_system/service/in_game_test_mails.dart';
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
-import 'package:dart_ingame_mail_system/controller/system_mail_crud_controller.dart';
+import 'package:dart_ingame_mail_system/clients/system_mail_crud_client.dart';
 import 'package:dart_ingame_mail_system/utils/system_mail_condition_arg_converter.dart';
 
 class InGameMailService extends GetxService {
   final Logger _logger = Logger('InGameMailService');
 
   // 사용자 메일과 시스템 메일을 관리하는 컨트롤러
-  final InGameMailCrudController _userMailController;
-  final SystemMailCrudController _systemMailController;
+  final InGameMailCrudClient userMailClient;
+  final SystemMailCrudClient systemMailClient;
 
   // 여러 프로젝트에서 공용으로 시스템 메일의 조건을 확인할 수 있도록 조건 확인 델리게이트를 등록한다
   final int _loginCount;
@@ -29,17 +29,17 @@ class InGameMailService extends GetxService {
     String? systemMailDocumentName,
     String? systemMailSenderName,
     int loginCount = 0,
-    RxInt? playerLevel,
-    RxInt? vipLevel,
+    int playerLevel = 0,
+    int vipLevel = 0,
     RxString? lastCompletedAchievementId,
     RxString? lastParticipatedEventId,
     RxInt? friendReferralCount,
     bool isTestMode = false,
-  })  : _userMailController = InGameMailCrudController(userEmail, inboxCollectionName, inboxDocumentName),
-        _systemMailController = SystemMailCrudController(),
+  })  : userMailClient = InGameMailCrudClient(userEmail, inboxCollectionName, inboxDocumentName),
+        systemMailClient = SystemMailCrudClient(),
         _loginCount = loginCount,
-        _playerLevel = playerLevel,
-        _vipLevel = vipLevel,
+        _playerLevel = playerLevel.obs,
+        _vipLevel = vipLevel.obs,
         _lastCompletedAchievementId = lastCompletedAchievementId,
         _lastParticipatedEventId = lastParticipatedEventId,
         _friendReferralCount = friendReferralCount,
@@ -91,11 +91,11 @@ class InGameMailService extends GetxService {
 
   Future<void> _loadUserMails() async {
     if (_isTestMode) {
-      userMails.assignAll(InGameTestMails.create(_userMailController));
+      userMails.assignAll(InGameTestMails.create());
       return;
     }
 
-    final result = await _userMailController.list();
+    final result = await userMailClient.list();
     if (result.isError) {
       _logger.warning('Failed to load user mails: ${result.message ?? 'Unknown error'}');
       return;
@@ -105,7 +105,7 @@ class InGameMailService extends GetxService {
   }
 
   Future<void> _loadSystemMails() async {
-    final result = await _systemMailController.list();
+    final result = await systemMailClient.list();
     if (result.isError) {
       _logger.warning('Failed to load system mails: ${result.message ?? 'Unknown error'}');
       return;
@@ -117,7 +117,7 @@ class InGameMailService extends GetxService {
   bool _alreadyReceivedSystemMail(SystemMail mail) => userMails.any((element) => element.id == mail.id);
 
   Future<void> _receiveMail(InGameMail mail) async {
-    await _userMailController.create(mail);
+    await userMailClient.create(mail);
     userMails.add(mail);
   }
 
@@ -129,7 +129,7 @@ class InGameMailService extends GetxService {
       }
 
       if (condition == SystemMailCondition.noCondition) {
-        await _userMailController.create(mail);
+        await userMailClient.create(mail);
         continue;
       }
 

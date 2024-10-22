@@ -1,12 +1,15 @@
+import 'package:dart_firetask/crud_client/client/document_client.dart';
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/utils/in_game_mail_id.dart';
 
-class InGameMail extends BaseDto<InGameMail> {
+class InGameMail extends CrudModel {
+  @override
+  final DocumentClient client = Get.find<InGameMailService>().userMailClient;
+
   final String sender;
   final String subject;
   final String message;
-  final DateTime date;
   final Rx<MailStatus> status;
   final List<MailAttachment>? attachments;
 
@@ -14,11 +17,10 @@ class InGameMail extends BaseDto<InGameMail> {
 
   InGameMail({
     required super.id,
-    required super.crud,
+    required super.dateTime,
     required this.sender,
     required this.subject,
     required this.message,
-    required this.date,
     required this.status,
     this.attachments,
   });
@@ -27,8 +29,7 @@ class InGameMail extends BaseDto<InGameMail> {
   bool get isRead => status.value == MailStatus.read;
   bool get isClaimed => status.value == MailStatus.claimed;
 
-  factory InGameMail.create({
-    required InGameMailCrudController controller,
+  factory InGameMail.crudCreate({
     required String sender,
     required String subject,
     required String message,
@@ -38,27 +39,25 @@ class InGameMail extends BaseDto<InGameMail> {
 
     return InGameMail(
       id: InGameMailId.create(now),
-      crud: controller,
       sender: sender,
       subject: subject,
       message: message,
-      date: now,
+      dateTime: now,
       status: MailStatus.unread.obs,
       attachments: attachments,
     );
   }
 
-  factory InGameMail.fromJson(InGameMailCrudController controller, Map<String, dynamic> json) {
+  factory InGameMail.fromJson(Map<String, dynamic> json) {
     return InGameMail(
       id: json.getString('id'),
       sender: json.getString('sender'),
       subject: json.getString('subject'),
       message: json.getString('message'),
-      date: json.getDateTime('date'),
+      dateTime: json.getDateTime('date'),
       status: json.getEnum<MailStatus>('status', MailStatus.values, defaultValue: MailStatus.unread).obs,
       attachments: json.getList<MailAttachment>('attachments',
           mapper: (json) => MailAttachment.fromJson(json as Map<String, dynamic>)),
-      crud: controller,
     );
   }
 
@@ -79,7 +78,7 @@ class InGameMail extends BaseDto<InGameMail> {
 
   Future<void> setStatus(MailStatus status) async {
     _tempStatus = status;
-    await save();
+    await crudUpdate();
     this.status.value = status;
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter_corelib/flutter_corelib.dart';
 import 'package:dart_ingame_mail_system/dart_ingame_mail_system.dart';
 import 'package:dart_ingame_mail_system/service/in_game_mail_config.dart';
-import 'package:dart_ingame_mail_system/controller/system_mail_crud_controller.dart';
+import 'package:dart_ingame_mail_system/clients/system_mail_crud_client.dart';
 
 // 시스템 메일을 받을 수 있는지 없는지에 대한 조건을 분류하는 enum
 enum SystemMailCondition {
@@ -16,33 +16,34 @@ enum SystemMailCondition {
 }
 
 class SystemMail extends InGameMail {
+  @override
+  final SystemMailCrudClient client = Get.find<InGameMailService>().systemMailClient;
+
   final SystemMailCondition condition;
   final String? conditionArg;
 
   SystemMail({
     required super.id,
-    required super.crud,
     required super.subject,
     required super.message,
-    required super.date,
+    required super.dateTime,
     required super.status,
     required this.condition,
     required this.conditionArg,
     super.attachments,
   }) : super(sender: InGameMailConfig.systemMailSenderName);
 
-  factory SystemMail.fromJson(SystemMailCrudController controller, Map<String, dynamic> json) {
+  factory SystemMail.fromJson(Map<String, dynamic> json) {
     return SystemMail(
       id: json.getString('id'),
       subject: json.getString('subject'),
       message: json.getString('message'),
-      date: json.getDateTime('date'),
+      dateTime: json.getDateTime('date'),
       status: json.getEnum<MailStatus>('status', MailStatus.values).obs,
       condition: json.getEnum<SystemMailCondition>('condition', SystemMailCondition.values),
       conditionArg: json.getString('conditionArg'),
       attachments: json.getList<MailAttachment>('attachments',
           mapper: (json) => MailAttachment.fromJson(json as Map<String, dynamic>)),
-      crud: controller,
     );
   }
 
